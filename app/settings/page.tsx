@@ -74,10 +74,7 @@ export default function SettingsPage() {
         throw new Error(apiErrorMessage(payload, "Failed to save settings."));
       }
 
-      setConnections(payload.data.settings);
-      setSavedSnapshot(payload.data.settings);
-      setStatus(payload.data.status);
-      setRuntime(payload.data.runtime);
+      await loadSettings();
       setMessage(payload.data.message ?? "Settings saved.");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Failed to save settings.");

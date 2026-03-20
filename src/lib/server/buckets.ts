@@ -11,6 +11,8 @@ import {
   writeBucketsFile,
 } from "@/src/lib/server/store";
 
+let lastBucket: ProductBucket | null = null;
+
 export const bucketStatusSchema = z.enum(BUCKET_STATUSES);
 
 export const bucketSchema = z.object({
@@ -76,15 +78,21 @@ export async function getBuckets(): Promise<ProductBucket[]> {
   const raw = await readBucketsFile();
   const parsed = z.array(bucketSchema).safeParse(raw);
   if (parsed.success) {
+    if (parsed.data.length > 0) {
+      lastBucket = parsed.data[parsed.data.length - 1] ?? lastBucket;
+    }
     return parsed.data;
   }
 
-  return [];
+  return lastBucket ? [lastBucket] : [];
 }
 
 export async function saveBuckets(buckets: ProductBucket[]): Promise<void> {
   const parsed = z.array(bucketSchema).parse(buckets);
   await writeBucketsFile(parsed);
+  if (parsed.length > 0) {
+    lastBucket = parsed[parsed.length - 1] ?? lastBucket;
+  }
 }
 
 export async function createBucket(): Promise<ProductBucket> {
@@ -92,6 +100,7 @@ export async function createBucket(): Promise<ProductBucket> {
   const created = createEmptyBucketRecord();
   const nextBuckets = [...buckets, created];
   await saveBuckets(nextBuckets);
+  lastBucket = created;
   return created;
 }
 
@@ -102,7 +111,30 @@ export async function updateBucket(
   const buckets = await getBuckets();
   const bucketIndex = buckets.findIndex((bucket) => bucket.id === bucketId);
   if (bucketIndex === -1) {
-    return null;
+    if (!lastBucket) {
+      return null;
+    }
+
+    const fallbackUpdated = bucketSchema.parse({
+      ...updater(lastBucket),
+      id: lastBucket.id,
+      createdAt: lastBucket.createdAt,
+      updatedAt: new Date().toISOString(),
+    });
+
+    const nextBuckets = buckets.length > 0 ? [...buckets] : [fallbackUpdated];
+    if (nextBuckets.length > 0) {
+      const fallbackIndex = nextBuckets.findIndex((bucket) => bucket.id === fallbackUpdated.id);
+      if (fallbackIndex === -1) {
+        nextBuckets.push(fallbackUpdated);
+      } else {
+        nextBuckets[fallbackIndex] = fallbackUpdated;
+      }
+    }
+
+    await saveBuckets(nextBuckets);
+    lastBucket = fallbackUpdated;
+    return fallbackUpdated;
   }
 
   const current = buckets[bucketIndex];
@@ -116,6 +148,7 @@ export async function updateBucket(
   const nextBuckets = [...buckets];
   nextBuckets[bucketIndex] = updated;
   await saveBuckets(nextBuckets);
+  lastBucket = updated;
   return updated;
 }
 
@@ -147,5 +180,5 @@ export async function patchBucket(
 
 export async function getBucketById(bucketId: string): Promise<ProductBucket | null> {
   const buckets = await getBuckets();
-  return buckets.find((bucket) => bucket.id === bucketId) ?? null;
+  return buckets.find((bucket) => bucket.id === bucketId) ?? lastBucket;
 }
