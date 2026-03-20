@@ -213,8 +213,7 @@ async function main() {
     goPrimary.response.ok || goPrimary.response.status === 400,
     "Go endpoint should return a handled response."
   );
-  const goPrimaryBucket =
-    goPrimary.payload.data?.bucket ?? goPrimary.payload.error?.details?.bucket;
+  const goPrimaryBucket = goPrimary.payload.data?.bucket;
   assert(Boolean(goPrimaryBucket), "Go endpoint did not return bucket payload.");
   assert(
     goPrimaryBucket.shopifyCreated === true || goPrimaryBucket.status === "FAILED",
@@ -236,8 +235,7 @@ async function main() {
     failureGo.response.ok || failureGo.response.status === 400,
     "Forced failure should return a handled response."
   );
-  const failureBucket =
-    failureGo.payload.data?.bucket ?? failureGo.payload.error?.details?.bucket;
+  const failureBucket = failureGo.payload.data?.bucket;
   assert(failureBucket?.status === "FAILED", "Forced failure should be FAILED.");
 
   const batchSuccessId = await createReadyBucket("Batch Success", "Batch A");
