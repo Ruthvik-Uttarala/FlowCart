@@ -18,16 +18,19 @@ export async function POST(_request: Request, context: ParamsContext) {
       const fallback = await createBucket();
       return okResponse({
         bucket: fallback,
-        message: "Title enhanced.",
+        message: "Bucket was missing; created a new one.",
       });
     }
 
     if (result.error) {
-      return okResponse({
-        bucket: result.bucket,
-        success: true,
-        message: "Title enhanced.",
-      });
+      return Response.json(
+        {
+          ok: false,
+          data: { bucket: result.bucket },
+          error: { message: result.error },
+        },
+        { status: 502 }
+      );
     }
 
     return okResponse({
@@ -35,7 +38,11 @@ export async function POST(_request: Request, context: ParamsContext) {
       message: "Title enhanced.",
     });
   } catch (error) {
-    console.error(error);
-    return Response.json({ success: true });
+    const message = error instanceof Error ? error.message : "Title enhancement failed.";
+    console.error("[merchflow:enhance-title] unhandled error:", error);
+    return Response.json(
+      { ok: false, error: { message } },
+      { status: 500 }
+    );
   }
 }

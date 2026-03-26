@@ -15,6 +15,9 @@ export const settingsSchema = z.object({
   shopifyClientSecret: z.string().optional().default(""),
   instagramAccessToken: z.string(),
   instagramBusinessAccountId: z.string(),
+  airiaApiUrl: z.string().optional().default(""),
+  airiaApiKey: z.string().optional().default(""),
+  airiaAgentGuid: z.string().optional().default(""),
 });
 
 function getEnvSetting(name: string): string {
@@ -30,6 +33,9 @@ function getEnvSettingsFallback(): ConnectionSettings {
     shopifyClientSecret: getEnvSetting("SHOPIFY_CLIENT_SECRET"),
     instagramAccessToken: getEnvSetting("INSTAGRAM_ACCESS_TOKEN"),
     instagramBusinessAccountId: getEnvSetting("INSTAGRAM_BUSINESS_ACCOUNT_ID"),
+    airiaApiUrl: getEnvSetting("AIRIA_API_URL"),
+    airiaApiKey: getEnvSetting("AIRIA_API_KEY"),
+    airiaAgentGuid: getEnvSetting("AIRIA_AGENT_GUID") || getEnvSetting("AIRIA_AGENT_ID"),
   };
 }
 
@@ -53,6 +59,12 @@ export async function getSettings(): Promise<ConnectionSettings> {
       instagramBusinessAccountId:
         parsed.data.instagramBusinessAccountId.trim() ||
         envFallback.instagramBusinessAccountId,
+      airiaApiUrl:
+        (parsed.data.airiaApiUrl ?? "").trim() || envFallback.airiaApiUrl,
+      airiaApiKey:
+        (parsed.data.airiaApiKey ?? "").trim() || envFallback.airiaApiKey,
+      airiaAgentGuid:
+        (parsed.data.airiaAgentGuid ?? "").trim() || envFallback.airiaAgentGuid,
     };
   }
 
@@ -68,6 +80,7 @@ export function redactSettingsForClient(
     shopifyAccessToken: "",
     shopifyClientSecret: "",
     instagramAccessToken: "",
+    airiaApiKey: "",
   };
 }
 
@@ -111,6 +124,9 @@ export async function saveSettings(input: unknown): Promise<ConnectionSettings> 
       parsed.instagramAccessToken.trim() || existing.instagramAccessToken,
     instagramBusinessAccountId:
       parsed.instagramBusinessAccountId.trim() || existing.instagramBusinessAccountId,
+    airiaApiUrl: parsed.airiaApiUrl?.trim() || existing.airiaApiUrl || "",
+    airiaApiKey: parsed.airiaApiKey?.trim() || existing.airiaApiKey || "",
+    airiaAgentGuid: parsed.airiaAgentGuid?.trim() || existing.airiaAgentGuid || "",
   };
 
   await writeSettingsFile(nextSettings);

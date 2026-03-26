@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
-import { AiriaPayload, AiriaRequestBodyShape, AiriaResult } from "@/src/lib/types";
+import { AiriaPayload, AiriaRequestBodyShape, AiriaResult, ConnectionSettings } from "@/src/lib/types";
 import { getAiriaRuntimeConfig, logRuntimeMode } from "@/src/lib/server/config";
 
 type AiriaPayloadWithoutMode = Omit<AiriaPayload, "mode">;
@@ -432,9 +432,11 @@ function previewBodyForLog(value: unknown): string {
   }
 }
 
-export async function runAiria(rawPayload: unknown): Promise<AiriaResult> {
-  const payload = airiaPayloadSchema.parse(rawPayload);
-  const runtime = getAiriaRuntimeConfig();
+async function executeAiriaRequest(
+  payload: AiriaPayload,
+  settings?: ConnectionSettings
+): Promise<AiriaResult> {
+  const runtime = getAiriaRuntimeConfig(settings);
   const requestId = stableToken(
     [
       payload.mode,
@@ -450,7 +452,7 @@ export async function runAiria(rawPayload: unknown): Promise<AiriaResult> {
   console.info(
     `[merchflow:airia] request started requestId=${requestId} mode=${runtime.status.mode} liveConfigured=${runtime.status.liveConfigured} endpoint=${redactUrlForLog(runtime.apiUrl)} method=${runtime.status.request.method} bodyShape=${describeBodyShape(runtime.bodyShape)}`
   );
-  logRuntimeMode("airia");
+  logRuntimeMode("airia", settings);
 
   const forcedFailure = buildForcedFailureIfRequested(payload);
   if (forcedFailure) {
@@ -462,7 +464,7 @@ export async function runAiria(rawPayload: unknown): Promise<AiriaResult> {
       `[merchflow:airia] live config missing requestId=${requestId} endpoint=${redactUrlForLog(runtime.apiUrl)}`
     );
     return createFailureResult(
-      "Airia live configuration is missing. Set AIRIA_API_URL, AIRIA_API_KEY, and AIRIA_AGENT_ID or AIRIA_AGENT_GUID."
+      "Airia live configuration is missing. Set AIRIA_API_URL, AIRIA_API_KEY, and AIRIA_AGENT_ID or AIRIA_AGENT_GUID, or configure them in Settings."
     );
   }
 
@@ -479,6 +481,11 @@ export async function runAiria(rawPayload: unknown): Promise<AiriaResult> {
       runtime.agentId,
       runtime.bodyShape
     );
+
+    console.info(
+      `[merchflow:airia] sending request requestId=${requestId} url=${redactUrlForLog(runtime.apiUrl)} agentId=${runtime.agentId.slice(0, 8)}... bodyShape=${runtime.bodyShape}`
+    );
+
     const response = await fetch(runtime.apiUrl, {
       method: runtime.status.request.method,
       headers: {
@@ -489,6 +496,11 @@ export async function runAiria(rawPayload: unknown): Promise<AiriaResult> {
     });
 
     const responseBody = await readResponseBody(response);
+
+    console.info(
+      `[merchflow:airia] response received requestId=${requestId} status=${response.status} body=${previewBodyForLog(responseBody)}`
+    );
+
     const normalized = normalizeAiriaResponse(responseBody, payload.mode);
 
     if (!response.ok) {
@@ -518,8 +530,27 @@ export async function runAiria(rawPayload: unknown): Promise<AiriaResult> {
   }
 }
 
-export async function callAiriaAgent(payload: AiriaPayload): Promise<AiriaResult> {
-  return runAiria(payload);
+export async function runAiria(rawPayload: unknown, settings?: ConnectionSettings): Promise<AiriaResult> {
+  const payload = airiaPayloadSchema.parse(rawPayload);
+
+  const firstAttempt = await executeAiriaRequest(payload, settings);
+
+  if (
+    !firstAttempt.success &&
+    firstAttempt.errorMessage.includes("status 500")
+  ) {
+    console.warn(
+      `[merchflow:airia] retrying after 500 error mode=${payload.mode}`
+    );
+    const retryResult = await executeAiriaRequest(payload, settings);
+    return retryResult;
+  }
+
+  return firstAttempt;
+}
+
+export async function callAiriaAgent(payload: AiriaPayload, settings?: ConnectionSettings): Promise<AiriaResult> {
+  return runAiria(payload, settings);
 }
 
 function toEnhancementOutput(
@@ -548,30 +579,33 @@ function toEnhancementOutput(
 }
 
 export async function enhanceTitleViaAiria(
-  payload: AiriaPayloadWithoutMode
+  payload: AiriaPayloadWithoutMode,
+  settings?: ConnectionSettings
 ): Promise<AiriaEnhancementOutput> {
   const result = await callAiriaAgent({
     ...payload,
     mode: "enhanceTitle",
-  });
+  }, settings);
   return toEnhancementOutput(payload, "enhanceTitle", result);
 }
 
 export async function enhanceDescriptionViaAiria(
-  payload: AiriaPayloadWithoutMode
+  payload: AiriaPayloadWithoutMode,
+  settings?: ConnectionSettings
 ): Promise<AiriaEnhancementOutput> {
   const result = await callAiriaAgent({
     ...payload,
     mode: "enhanceDescription",
-  });
+  }, settings);
   return toEnhancementOutput(payload, "enhanceDescription", result);
 }
 
 export async function fullLaunchViaAiria(
-  payload: AiriaPayloadWithoutMode
+  payload: AiriaPayloadWithoutMode,
+  settings?: ConnectionSettings
 ): Promise<AiriaResult> {
   return callAiriaAgent({
     ...payload,
     mode: "fullLaunch",
-  });
+  }, settings);
 }

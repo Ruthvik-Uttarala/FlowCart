@@ -13,6 +13,9 @@ const EMPTY_SETTINGS: ConnectionSettings = {
   shopifyClientSecret: "",
   instagramAccessToken: "",
   instagramBusinessAccountId: "",
+  airiaApiUrl: "",
+  airiaApiKey: "",
+  airiaAgentGuid: "",
 };
 
 interface SettingsPayload {
@@ -181,6 +184,54 @@ export default function SettingsPage() {
                 }))
               }
               placeholder="1784..."
+              className="w-full rounded-xl border border-stone-200 bg-white/80 px-3 py-2 text-stone-900 outline-none transition focus:border-orange-400/60 focus:ring-1 focus:ring-orange-400/20"
+            />
+          </label>
+        </div>
+
+        <h2 className="mt-8 text-xl font-semibold text-stone-900">Airia AI Configuration</h2>
+        <p className="mt-1 text-sm text-stone-500">Connect your Airia pipeline for AI-powered title and description enhancement.</p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <label className="space-y-2 text-sm sm:col-span-2">
+            <span className="text-stone-600">Airia API URL</span>
+            <input
+              value={connections.airiaApiUrl ?? ""}
+              onChange={(event) =>
+                setConnections((current) => ({
+                  ...current,
+                  airiaApiUrl: event.target.value,
+                }))
+              }
+              placeholder="https://api.airia.com/v2/PipelineExecution/..."
+              className="w-full rounded-xl border border-stone-200 bg-white/80 px-3 py-2 text-stone-900 outline-none transition focus:border-orange-400/60 focus:ring-1 focus:ring-orange-400/20"
+            />
+          </label>
+          <label className="space-y-2 text-sm">
+            <span className="text-stone-600">Airia API Key</span>
+            <input
+              type="password"
+              value={connections.airiaApiKey ?? ""}
+              onChange={(event) =>
+                setConnections((current) => ({
+                  ...current,
+                  airiaApiKey: event.target.value,
+                }))
+              }
+              placeholder="Your Airia API key"
+              className="w-full rounded-xl border border-stone-200 bg-white/80 px-3 py-2 text-stone-900 outline-none transition focus:border-orange-400/60 focus:ring-1 focus:ring-orange-400/20"
+            />
+          </label>
+          <label className="space-y-2 text-sm">
+            <span className="text-stone-600">Airia Agent GUID</span>
+            <input
+              value={connections.airiaAgentGuid ?? ""}
+              onChange={(event) =>
+                setConnections((current) => ({
+                  ...current,
+                  airiaAgentGuid: event.target.value,
+                }))
+              }
+              placeholder="Agent pipeline GUID"
               className="w-full rounded-xl border border-stone-200 bg-white/80 px-3 py-2 text-stone-900 outline-none transition focus:border-orange-400/60 focus:ring-1 focus:ring-orange-400/20"
             />
           </label>

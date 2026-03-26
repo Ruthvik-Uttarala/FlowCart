@@ -46,35 +46,14 @@ async function buildAiriaPayload(
   const settings = await getSettings();
   const fallbackQuantity = bucket.quantity ?? 1;
   const fallbackPrice = bucket.price ?? 1;
-  const fallbackSettings = areSettingsConfigured(settings)
-    ? settings
-    : {
-        ...settings,
-        shopifyStoreDomain:
-          settings.shopifyStoreDomain || process.env.SHOPIFY_STORE_DOMAIN || "",
-        shopifyClientId:
-          settings.shopifyClientId || process.env.SHOPIFY_CLIENT_ID || "",
-        shopifyClientSecret:
-          settings.shopifyClientSecret ||
-          process.env.SHOPIFY_CLIENT_SECRET ||
-          "",
-        instagramAccessToken:
-          settings.instagramAccessToken ||
-          process.env.INSTAGRAM_ACCESS_TOKEN ||
-          "",
-        instagramBusinessAccountId:
-          settings.instagramBusinessAccountId ||
-          process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID ||
-          "",
-      };
 
   return {
-    settings: fallbackSettings,
+    settings,
     payload: {
-      storeDomain: fallbackSettings.shopifyStoreDomain,
-      shopifyAdminToken: fallbackSettings.shopifyAdminToken,
-      instagramAccessToken: fallbackSettings.instagramAccessToken,
-      instagramBusinessAccountId: fallbackSettings.instagramBusinessAccountId,
+      storeDomain: settings.shopifyStoreDomain,
+      shopifyAdminToken: settings.shopifyAdminToken,
+      instagramAccessToken: settings.instagramAccessToken,
+      instagramBusinessAccountId: settings.instagramBusinessAccountId,
       titleRaw: bucket.titleRaw,
       descriptionRaw: bucket.descriptionRaw,
       price: fallbackPrice,
@@ -107,8 +86,8 @@ export async function enhanceBucket(
   try {
     const enhanced =
       mode === "enhanceTitle"
-        ? await enhanceTitleViaAiria(payloadBuild.payload)
-        : await enhanceDescriptionViaAiria(payloadBuild.payload);
+        ? await enhanceTitleViaAiria(payloadBuild.payload, payloadBuild.settings)
+        : await enhanceDescriptionViaAiria(payloadBuild.payload, payloadBuild.settings);
 
     const updated = await updateBucket(bucketId, (bucket) => {
       const next = {
@@ -158,22 +137,6 @@ export async function launchBucket(bucketId: string): Promise<WorkflowResult> {
   const existingBucket = (await getBucketById(bucketId)) ?? (await createBucket());
 
   const payloadBuild = await buildAiriaPayload(existingBucket, "fullLaunch");
-  if (!payloadBuild.payload) {
-    const fallbackPayload = {
-      storeDomain: normalizeStoreDomain(process.env.SHOPIFY_STORE_DOMAIN ?? ""),
-      shopifyAdminToken: "",
-      instagramAccessToken: process.env.INSTAGRAM_ACCESS_TOKEN ?? "",
-      instagramBusinessAccountId: process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID ?? "",
-      titleRaw: existingBucket.titleRaw || "Demo Product",
-      descriptionRaw: existingBucket.descriptionRaw || "Demo description",
-      price: existingBucket.price ?? 1,
-      quantity: existingBucket.quantity ?? 1,
-      imageUrls: existingBucket.imageUrls,
-      mode: "fullLaunch" as const,
-    };
-    const fallbackSettings = await getSettings();
-    return launchBucketWithPayload(bucketId, existingBucket, fallbackPayload, fallbackSettings);
-  }
 
   return launchBucketWithPayload(
     bucketId,
@@ -212,7 +175,7 @@ async function launchBucketWithPayload(
 
   if (!enhancedTitle) {
     try {
-       const titleOutput = await enhanceTitleViaAiria(payload);
+       const titleOutput = await enhanceTitleViaAiria(payload, settings);
       enhancedTitle = titleOutput.title.trim();
     } catch (error) {
       const message =
@@ -234,7 +197,7 @@ async function launchBucketWithPayload(
 
   if (!enhancedDescription) {
     try {
-       const descriptionOutput = await enhanceDescriptionViaAiria(payload);
+       const descriptionOutput = await enhanceDescriptionViaAiria(payload, settings);
       enhancedDescription = descriptionOutput.description.trim();
     } catch (error) {
       const message =

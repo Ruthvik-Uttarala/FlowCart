@@ -112,12 +112,29 @@ function getCustomAiriaHeadersConfig(): {
   };
 }
 
-function getAiriaRequiredFieldStatus() {
-  const apiUrl = getTrimmedEnv("AIRIA_API_URL");
-  const apiKey = getTrimmedEnv("AIRIA_API_KEY");
-  const agentId =
+/**
+ * Resolve Airia credentials: saved settings take priority, then env vars.
+ */
+function resolveAiriaCredentials(settings?: ConnectionSettings): {
+  apiUrl: string;
+  apiKey: string;
+  agentId: string;
+} {
+  const envApiUrl = getTrimmedEnv("AIRIA_API_URL");
+  const envApiKey = getTrimmedEnv("AIRIA_API_KEY");
+  const envAgentId =
     getOptionalTrimmedEnv("AIRIA_AGENT_ID") ||
     getOptionalTrimmedEnv("AIRIA_AGENT_GUID");
+
+  return {
+    apiUrl: (settings?.airiaApiUrl ?? "").trim() || envApiUrl,
+    apiKey: (settings?.airiaApiKey ?? "").trim() || envApiKey,
+    agentId: (settings?.airiaAgentGuid ?? "").trim() || envAgentId,
+  };
+}
+
+function getAiriaRequiredFieldStatus(settings?: ConnectionSettings) {
+  const { apiUrl, apiKey, agentId } = resolveAiriaCredentials(settings);
 
   return {
     apiUrl,
@@ -130,8 +147,8 @@ function getAiriaRequiredFieldStatus() {
   };
 }
 
-export function getAiriaConfigStatus(): AiriaConfigStatus {
-  const airia = getAiriaRequiredFieldStatus();
+export function getAiriaConfigStatus(settings?: ConnectionSettings): AiriaConfigStatus {
+  const airia = getAiriaRequiredFieldStatus(settings);
   const customHeaders = getCustomAiriaHeadersConfig();
 
   return {
@@ -156,8 +173,8 @@ export function getAiriaConfigStatus(): AiriaConfigStatus {
   };
 }
 
-export function hasLiveAiriaConfig(): boolean {
-  return getAiriaConfigStatus().liveConfigured;
+export function hasLiveAiriaConfig(settings?: ConnectionSettings): boolean {
+  return getAiriaConfigStatus(settings).liveConfigured;
 }
 
 export interface AiriaRuntimeConfig {
@@ -208,14 +225,11 @@ function buildRequestHeaders(
   return headers;
 }
 
-export function getAiriaRuntimeConfig(): AiriaRuntimeConfig {
-  const status = getAiriaConfigStatus();
+export function getAiriaRuntimeConfig(settings?: ConnectionSettings): AiriaRuntimeConfig {
+  const status = getAiriaConfigStatus(settings);
   const bodyShape = parseBodyShape(process.env.AIRIA_API_BODY_SHAPE);
-  const apiUrl = getTrimmedEnv("AIRIA_API_URL");
-  const apiKey = getTrimmedEnv("AIRIA_API_KEY");
-  const agentId =
-    getOptionalTrimmedEnv("AIRIA_AGENT_ID") ||
-    getOptionalTrimmedEnv("AIRIA_AGENT_GUID");
+  const { apiUrl, apiKey, agentId } = resolveAiriaCredentials(settings);
+
   return {
     status,
     apiUrl,
@@ -227,8 +241,8 @@ export function getAiriaRuntimeConfig(): AiriaRuntimeConfig {
   };
 }
 
-export function getAiriaCredentials() {
-  const runtime = getAiriaRuntimeConfig();
+export function getAiriaCredentials(settings?: ConnectionSettings) {
+  const runtime = getAiriaRuntimeConfig(settings);
   return {
     ...runtime,
     mode: runtime.status.mode,
@@ -243,7 +257,7 @@ export function getSafeSettingsStatus(settings: ConnectionSettings): SafeSetting
 export function getLaunchReadinessStatus(
   settings: ConnectionSettings
 ): LaunchReadinessStatus {
-  const airia = getAiriaConfigStatus();
+  const airia = getAiriaConfigStatus(settings);
   const safeSettings = getSafeSettingsStatus(settings);
   const executionReadiness = getExecutionReadiness(settings);
   const missingSettingsFields = executionReadiness.missingRequirements;
@@ -277,7 +291,7 @@ export function getLaunchReadinessStatus(
 export function getRuntimeConfigSnapshot(
   settings: ConnectionSettings
 ): RuntimeConfigSnapshot {
-  const airia = getAiriaConfigStatus();
+  const airia = getAiriaConfigStatus(settings);
   return {
     appRunning: true,
     airiaMode: airia.mode,
@@ -293,8 +307,8 @@ export function getRuntimeConfigSnapshot(
   };
 }
 
-export function logRuntimeMode(context: string): void {
-  const airia = getAiriaConfigStatus();
+export function logRuntimeMode(context: string, settings?: ConnectionSettings): void {
+  const airia = getAiriaConfigStatus(settings);
   console.info(
     `[merchflow:${context}] airiaMode=${airia.mode} liveConfigured=${airia.liveConfigured} apiUrl=${airia.apiUrlPresent ? "yes" : "no"} apiKey=${airia.apiKeyPresent ? "yes" : "no"} agentId=${airia.agentIdPresent ? "yes" : "no"} method=${airia.request.method} bodyShape=${airia.request.bodyShape} headers=${airia.request.customHeaders.customHeadersPresent ? airia.request.customHeaders.customHeaderNames.join(",") : "none"}`
   );
