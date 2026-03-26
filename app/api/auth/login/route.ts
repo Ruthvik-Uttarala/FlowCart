@@ -17,6 +17,7 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
     if (!supabaseAuthConfigured) {
+      console.error("[merchflow:auth:login] Supabase auth is not configured");
       return errorResponse(
         "Supabase auth is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
         { status: 503 }
@@ -27,13 +28,26 @@ export async function POST(request: Request) {
     const parsed = loginSchema.safeParse(body);
 
     if (!parsed.success) {
+      console.warn("[merchflow:auth:login] Validation failed:", parsed.error.issues);
       return errorResponse("Enter a valid email and password.", { status: 400 });
     }
 
+    console.log("[merchflow:auth:login] Attempting login for:", parsed.data.email);
+
     const result = await signInWithSupabase(parsed.data);
+
+    console.log("[merchflow:auth:login] Login result:", {
+      hasSession: !!result.session,
+      hasError: !!result.error,
+      error: result.error ?? null,
+    });
+
     if (!result.session) {
+      console.error("[merchflow:auth:login] Login failed:", result.error);
       return errorResponse(result.error ?? "Unable to sign in.", { status: 401 });
     }
+
+    console.log("[merchflow:auth:login] Session created for user:", result.session.user?.email, "id:", result.session.user?.id);
 
     const response = okResponse({
       user: result.session.user,
@@ -46,7 +60,7 @@ export async function POST(request: Request) {
 
     return response;
   } catch (error) {
-    console.error(error);
-    return Response.json({ success: true });
+    console.error("[merchflow:auth:login] Unhandled error:", error);
+    return errorResponse("Login failed due to an unexpected error.", { status: 500 });
   }
 }

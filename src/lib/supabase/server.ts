@@ -40,10 +40,14 @@ async function supabaseAuthRequest<T>(
   init?: RequestInit,
 ): Promise<{ data?: T; error?: string }> {
   if (!supabaseAuthConfigured) {
+    console.error("[merchflow:supabase] Auth not configured:", supabaseConfigError);
     return { error: supabaseConfigError };
   }
 
-  const response = await fetch(authUrl(path), {
+  const url = authUrl(path);
+  console.log("[merchflow:supabase] Request:", init?.method ?? "GET", url);
+
+  const response = await fetch(url, {
     ...init,
     headers: authHeaders(init?.headers),
     cache: "no-store",
@@ -54,8 +58,12 @@ async function supabaseAuthRequest<T>(
     ? ((await response.json().catch(() => null)) as T | SupabaseAuthErrorShape | null)
     : null;
 
+  console.log("[merchflow:supabase] Response status:", response.status, "path:", path);
+
   if (!response.ok) {
-    return { error: parseAuthError(payload as SupabaseAuthErrorShape | null) };
+    const errorMsg = parseAuthError(payload as SupabaseAuthErrorShape | null);
+    console.error("[merchflow:supabase] Auth error:", errorMsg, "payload:", JSON.stringify(payload));
+    return { error: errorMsg };
   }
 
   return { data: payload as T };

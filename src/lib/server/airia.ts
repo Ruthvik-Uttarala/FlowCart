@@ -197,11 +197,17 @@ async function executeAiriaRequest(
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${runtime.apiKey}`,
+    "x-api-key": runtime.apiKey,
   };
 
   console.log("[merchflow:airia] Airia request", {
     url: runtime.endpoint,
-    headers: { ...headers, Authorization: "Bearer ***" },
+    agentId: runtime.agentId,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer ***",
+      "x-api-key": "***",
+    },
     body: requestBody,
   });
 
