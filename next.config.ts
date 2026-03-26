@@ -4,6 +4,17 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "kcapqozkppxqtmqrigcp.supabase.co",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

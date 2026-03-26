@@ -299,13 +299,13 @@ export default function DashboardPage() {
       >
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-500">
               Launch Console
             </p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-stone-900">
               FlowCart Dashboard
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300">
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-stone-600">
               Build a bucket, upload product assets, enhance with Airia, then run GO to
               create a Shopify product and Instagram post through live integrations.
             </p>
@@ -315,7 +315,7 @@ export default function DashboardPage() {
               type="button"
               onClick={createBucket}
               disabled={isRunningGoAll}
-              className="rounded-2xl border border-white/15 bg-white/8 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/12 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-2xl border border-stone-200 bg-white/60 px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-white hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
             >
               Create Bucket
             </button>
@@ -323,7 +323,7 @@ export default function DashboardPage() {
               type="button"
               onClick={goAllBuckets}
               disabled={readyCount === 0 || isRunningGoAll}
-              className="rounded-2xl bg-gradient-to-r from-cyan-300 via-sky-400 to-orange-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-2xl bg-gradient-to-r from-orange-400 to-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-md hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isRunningGoAll ? "Running..." : `GO ALL (${readyCount})`}
             </button>
@@ -340,38 +340,38 @@ export default function DashboardPage() {
               value: runtimeHealth.airiaMode === "live" ? "Live" : "Missing",
             },
           ].map((item) => (
-            <div key={item.label} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <div key={item.label} className="rounded-2xl border border-stone-200 bg-white/60 px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">
                 {item.label}
               </p>
-              <p className="mt-1 text-xl font-semibold text-white">{item.value}</p>
+              <p className="mt-1 text-xl font-semibold text-stone-900">{item.value}</p>
             </div>
           ))}
         </div>
       </motion.section>
 
       {loading ? (
-        <p className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
+        <p className="rounded-xl border border-stone-200 bg-white/60 px-4 py-3 text-sm text-stone-600">
           Loading buckets...
         </p>
       ) : null}
 
       {summaryMessage ? (
-        <p className="rounded-xl border border-emerald-300/25 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">
+        <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           {summaryMessage}
           {goAllSummary ? ` (${goAllSummary.total} processed)` : ""}
         </p>
       ) : null}
 
       {pageError ? (
-        <p className="rounded-xl border border-rose-300/25 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">
+        <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
           {pageError}
         </p>
       ) : null}
 
       {buckets.length === 0 && !loading ? (
         <div className="glass-card rounded-3xl p-8 text-center">
-          <p className="text-sm text-slate-300">
+          <p className="text-sm text-stone-600">
             No buckets yet. Create your first bucket to start the launch flow.
           </p>
         </div>

@@ -11,7 +11,7 @@ import {
   writeBucketsFile,
 } from "@/src/lib/server/store";
 
-let lastBucket: ProductBucket | null = null;
+let GLOBAL_BUCKET: ProductBucket | null = null;
 
 export const bucketStatusSchema = z.enum(BUCKET_STATUSES);
 
@@ -79,19 +79,19 @@ export async function getBuckets(): Promise<ProductBucket[]> {
   const parsed = z.array(bucketSchema).safeParse(raw);
   if (parsed.success) {
     if (parsed.data.length > 0) {
-      lastBucket = parsed.data[parsed.data.length - 1] ?? lastBucket;
+      GLOBAL_BUCKET = parsed.data[parsed.data.length - 1] ?? GLOBAL_BUCKET;
     }
     return parsed.data;
   }
 
-  return lastBucket ? [lastBucket] : [];
+  return GLOBAL_BUCKET ? [GLOBAL_BUCKET] : [];
 }
 
 export async function saveBuckets(buckets: ProductBucket[]): Promise<void> {
   const parsed = z.array(bucketSchema).parse(buckets);
   await writeBucketsFile(parsed);
   if (parsed.length > 0) {
-    lastBucket = parsed[parsed.length - 1] ?? lastBucket;
+    GLOBAL_BUCKET = parsed[parsed.length - 1] ?? GLOBAL_BUCKET;
   }
 }
 
@@ -100,7 +100,7 @@ export async function createBucket(): Promise<ProductBucket> {
   const created = createEmptyBucketRecord();
   const nextBuckets = [...buckets, created];
   await saveBuckets(nextBuckets);
-  lastBucket = created;
+  GLOBAL_BUCKET = created;
   return created;
 }
 
@@ -111,14 +111,14 @@ export async function updateBucket(
   const buckets = await getBuckets();
   const bucketIndex = buckets.findIndex((bucket) => bucket.id === bucketId);
   if (bucketIndex === -1) {
-    if (!lastBucket) {
+    if (!GLOBAL_BUCKET) {
       return null;
     }
 
     const fallbackUpdated = bucketSchema.parse({
-      ...updater(lastBucket),
-      id: lastBucket.id,
-      createdAt: lastBucket.createdAt,
+      ...updater(GLOBAL_BUCKET),
+      id: GLOBAL_BUCKET.id,
+      createdAt: GLOBAL_BUCKET.createdAt,
       updatedAt: new Date().toISOString(),
     });
 
@@ -133,7 +133,7 @@ export async function updateBucket(
     }
 
     await saveBuckets(nextBuckets);
-    lastBucket = fallbackUpdated;
+    GLOBAL_BUCKET = fallbackUpdated;
     return fallbackUpdated;
   }
 
@@ -148,7 +148,7 @@ export async function updateBucket(
   const nextBuckets = [...buckets];
   nextBuckets[bucketIndex] = updated;
   await saveBuckets(nextBuckets);
-  lastBucket = updated;
+  GLOBAL_BUCKET = updated;
   return updated;
 }
 
@@ -180,5 +180,5 @@ export async function patchBucket(
 
 export async function getBucketById(bucketId: string): Promise<ProductBucket | null> {
   const buckets = await getBuckets();
-  return buckets.find((bucket) => bucket.id === bucketId) ?? lastBucket;
+  return buckets.find((bucket) => bucket.id === bucketId) ?? GLOBAL_BUCKET;
 }

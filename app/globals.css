@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --background: #040711;
-  --background-soft: #0b1223;
-  --foreground: #ebf1ff;
-  --surface: rgba(10, 18, 34, 0.62);
-  --card-border: rgba(148, 163, 184, 0.18);
-  --accent-a: #22d3ee;
-  --accent-b: #f97316;
-  --accent-c: #38bdf8;
+  --background: #FAF9F6;
+  --background-soft: #F5F0EB;
+  --foreground: #292524;
+  --surface: rgba(255, 255, 255, 0.72);
+  --card-border: rgba(120, 113, 108, 0.12);
+  --accent-a: #E07A3A;
+  --accent-b: #C2590A;
+  --accent-c: #D4A574;
 }
 
 @theme inline {
@@ -25,7 +25,7 @@
 
 html {
   background: var(--background);
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 * {
@@ -37,18 +37,18 @@ body {
   overflow-x: hidden;
   background: var(--background);
   background-image:
-    radial-gradient(circle at 12% 8%, rgba(56, 189, 248, 0.28), transparent 35%),
-    radial-gradient(circle at 88% 12%, rgba(249, 115, 22, 0.2), transparent 34%),
-    radial-gradient(circle at 50% 100%, rgba(14, 165, 233, 0.18), transparent 45%),
-    linear-gradient(165deg, #040711 0%, #090f1f 52%, #111a2f 100%);
+    radial-gradient(circle at 15% 10%, rgba(224, 122, 58, 0.06), transparent 40%),
+    radial-gradient(circle at 85% 15%, rgba(212, 165, 116, 0.08), transparent 38%),
+    radial-gradient(circle at 50% 95%, rgba(224, 122, 58, 0.04), transparent 45%),
+    linear-gradient(175deg, #FAF9F6 0%, #F5F0EB 55%, #EDE5DC 100%);
   background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-geist-sans), sans-serif;
 }
 
 ::selection {
-  background: rgba(34, 211, 238, 0.28);
-  color: #f8fbff;
+  background: rgba(224, 122, 58, 0.18);
+  color: #1c1917;
 }
 
 a {
@@ -58,12 +58,12 @@ a {
 .glass-card {
   background: var(--surface);
   border: 1px solid var(--card-border);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 24px 80px rgba(2, 6, 23, 0.28);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 4px 24px rgba(41, 37, 36, 0.06);
 }
 
 .accent-ring {
   box-shadow:
-    0 0 0 1px rgba(56, 189, 248, 0.2),
-    0 14px 45px rgba(2, 132, 199, 0.18);
+    0 0 0 1px rgba(224, 122, 58, 0.15),
+    0 8px 32px rgba(194, 89, 10, 0.08);
 }

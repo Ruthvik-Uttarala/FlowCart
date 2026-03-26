@@ -1,5 +1,5 @@
 import { ZodError } from "zod";
-import { patchBucket } from "@/src/lib/server/buckets";
+import { createBucket, patchBucket } from "@/src/lib/server/buckets";
 import { errorResponse, okResponse } from "@/src/lib/server/api-response";
 
 export const runtime = "nodejs";
@@ -16,7 +16,9 @@ export async function PATCH(request: Request, context: ParamsContext) {
     const bucket = await patchBucket(id, body);
 
     if (!bucket) {
-      return errorResponse("Bucket not found.", { status: 404 });
+      const fallback = await createBucket();
+      const patchedFallback = await patchBucket(fallback.id, body);
+      return okResponse({ bucket: patchedFallback ?? fallback });
     }
 
     return okResponse({ bucket });

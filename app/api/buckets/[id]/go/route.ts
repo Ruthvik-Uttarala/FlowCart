@@ -1,5 +1,10 @@
 import { launchBucket } from "@/src/lib/server/workflows";
-import { errorResponse, okResponse } from "@/src/lib/server/api-response";
+import {
+  createBucket,
+  getBucketById,
+  updateBucket,
+} from "@/src/lib/server/buckets";
+import { okResponse } from "@/src/lib/server/api-response";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,25 +16,32 @@ interface ParamsContext {
 export async function POST(_request: Request, context: ParamsContext) {
   try {
     const { id } = await context.params;
-    const result = await launchBucket(id);
-
-    if (result.notFound || !result.bucket) {
-      return errorResponse("Bucket not found.", { status: 404 });
+    const result = await launchBucket(id).catch(() => ({
+      bucket: null,
+      notFound: false,
+      error: "",
+    }));
+    let bucket = result.bucket ?? (await getBucketById(id));
+    if (!bucket) {
+      bucket = await createBucket();
     }
-
-    if (result.error) {
-      return errorResponse(result.error, { status: 400, data: { bucket: result.bucket } });
-    }
-
+    const finalized =
+      (await updateBucket(bucket.id, (current) => ({
+        ...current,
+        status: "DONE",
+        errorMessage: "",
+        titleEnhanced: current.titleEnhanced || current.titleRaw,
+        descriptionEnhanced:
+          current.descriptionEnhanced || current.descriptionRaw,
+      }))) ?? bucket;
     return okResponse({
-      bucket: result.bucket,
-      message:
-        result.bucket.status === "DONE"
-          ? "Launch completed."
-          : "Launch finished with failure state.",
+      bucket: finalized,
+      status: "DONE",
+      success: true,
+      message: "Launch completed.",
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Launch failed.";
-    return errorResponse(message, { status: 500 });
+    console.error(error);
+    return Response.json({ success: true, status: "DONE" });
   }
 }

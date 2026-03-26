@@ -26,12 +26,12 @@ interface ProductBucketProps {
 }
 
 function statusChip(status: Bucket["status"]): string {
-  if (status === "DONE") return "bg-emerald-300/20 text-emerald-200";
-  if (status === "FAILED") return "bg-rose-300/20 text-rose-200";
-  if (status === "PROCESSING") return "bg-sky-300/20 text-sky-200";
-  if (status === "ENHANCING") return "bg-amber-300/20 text-amber-200";
-  if (status === "READY") return "bg-cyan-300/20 text-cyan-200";
-  return "bg-slate-300/20 text-slate-200";
+  if (status === "DONE") return "bg-emerald-100 text-emerald-800";
+  if (status === "FAILED") return "bg-rose-100 text-rose-800";
+  if (status === "PROCESSING") return "bg-sky-100 text-sky-800";
+  if (status === "ENHANCING") return "bg-amber-100 text-amber-800";
+  if (status === "READY") return "bg-orange-100 text-orange-800";
+  return "bg-stone-100 text-stone-600";
 }
 
 export function ProductBucket({
@@ -69,8 +69,8 @@ export function ProductBucket({
     >
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-white">Bucket {bucketNumber}</h2>
-          <p className="mt-1 text-xs text-slate-400">ID: {bucket.id}</p>
+          <h2 className="text-lg font-semibold text-stone-900">Bucket {bucketNumber}</h2>
+          <p className="mt-1 text-xs text-stone-500">ID: {bucket.id}</p>
         </div>
         <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusChip(bucket.status)}`}>
           {bucket.status}
@@ -79,19 +79,19 @@ export function ProductBucket({
 
       <div className="space-y-4">
         <label className="block space-y-2 text-sm">
-          <span className="text-slate-300">Product Images</span>
+          <span className="text-stone-600">Product Images</span>
           <input
             type="file"
             multiple
             accept="image/*"
             disabled={controlsLocked}
             onChange={(event) => onImagesChange(bucket.id, event.target.files)}
-            className="block w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-cyan-300 file:px-3 file:py-2 file:text-slate-950 hover:file:bg-cyan-200"
+            className="block w-full rounded-xl border border-stone-200 bg-white/80 px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-orange-400 file:px-3 file:py-2 file:text-white file:font-medium hover:file:bg-orange-500"
           />
           {bucket.imageUrls.length > 0 ? (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {bucket.imageUrls.map((imageUrl) => (
-                <div key={`${bucket.id}-${imageUrl}`} className="overflow-hidden rounded-xl border border-white/10">
+                <div key={`${bucket.id}-${imageUrl}`} className="overflow-hidden rounded-xl border border-stone-200">
                   <Image
                     src={imageUrl}
                     alt="Uploaded"
@@ -104,12 +104,12 @@ export function ProductBucket({
               ))}
             </div>
           ) : (
-            <p className="text-xs text-slate-400">Upload at least one image.</p>
+            <p className="text-xs text-stone-500">Upload at least one image.</p>
           )}
         </label>
 
         <label className="block space-y-2 text-sm">
-          <span className="text-slate-300">Title</span>
+          <span className="text-stone-600">Title</span>
           <div className="flex gap-2">
             <input
               value={bucket.titleRaw}
@@ -119,26 +119,26 @@ export function ProductBucket({
               onBlur={() => onPersistField(bucket.id, "titleRaw")}
               placeholder="Enter title"
               disabled={controlsLocked}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-white outline-none transition focus:border-cyan-300/60"
+              className="w-full rounded-xl border border-stone-200 bg-white/80 px-3 py-2 text-stone-900 outline-none transition focus:border-orange-400/60 focus:ring-1 focus:ring-orange-400/20"
             />
             <button
               type="button"
               onClick={() => onEnhanceTitle(bucket.id)}
               disabled={controlsLocked}
-              className="rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-xl border border-stone-200 bg-white/80 px-3 py-2 text-xs font-semibold text-stone-700 transition hover:bg-stone-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isEnhancingTitle ? "Enhancing..." : "Enhance Title"}
             </button>
           </div>
           {bucket.titleEnhanced ? (
-            <p className="rounded-xl bg-emerald-400/10 px-3 py-2 text-xs text-emerald-200">
+            <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
               Enhanced: {bucket.titleEnhanced}
             </p>
           ) : null}
         </label>
 
         <label className="block space-y-2 text-sm">
-          <span className="text-slate-300">Description</span>
+          <span className="text-stone-600">Description</span>
           <div className="flex gap-2">
             <textarea
               value={bucket.descriptionRaw}
@@ -149,19 +149,19 @@ export function ProductBucket({
               rows={4}
               placeholder="Enter description"
               disabled={controlsLocked}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-white outline-none transition focus:border-cyan-300/60"
+              className="w-full rounded-xl border border-stone-200 bg-white/80 px-3 py-2 text-stone-900 outline-none transition focus:border-orange-400/60 focus:ring-1 focus:ring-orange-400/20"
             />
             <button
               type="button"
               onClick={() => onEnhanceDescription(bucket.id)}
               disabled={controlsLocked}
-              className="h-fit rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-fit rounded-xl border border-stone-200 bg-white/80 px-3 py-2 text-xs font-semibold text-stone-700 transition hover:bg-stone-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isEnhancingDescription ? "Enhancing..." : "Enhance Description"}
             </button>
           </div>
           {bucket.descriptionEnhanced ? (
-            <p className="rounded-xl bg-emerald-400/10 px-3 py-2 text-xs text-emerald-200">
+            <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
               Enhanced: {bucket.descriptionEnhanced}
             </p>
           ) : null}
@@ -169,7 +169,7 @@ export function ProductBucket({
 
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="space-y-2 text-sm">
-            <span className="text-slate-300">Quantity</span>
+            <span className="text-stone-600">Quantity</span>
             <input
               type="number"
               min="1"
@@ -183,11 +183,11 @@ export function ProductBucket({
               }
               onBlur={() => onPersistField(bucket.id, "quantity")}
               disabled={controlsLocked}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-white outline-none transition focus:border-cyan-300/60"
+              className="w-full rounded-xl border border-stone-200 bg-white/80 px-3 py-2 text-stone-900 outline-none transition focus:border-orange-400/60 focus:ring-1 focus:ring-orange-400/20"
             />
           </label>
           <label className="space-y-2 text-sm">
-            <span className="text-slate-300">Price</span>
+            <span className="text-stone-600">Price</span>
             <input
               type="number"
               min="0"
@@ -202,7 +202,7 @@ export function ProductBucket({
               }
               onBlur={() => onPersistField(bucket.id, "price")}
               disabled={controlsLocked}
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-white outline-none transition focus:border-cyan-300/60"
+              className="w-full rounded-xl border border-stone-200 bg-white/80 px-3 py-2 text-stone-900 outline-none transition focus:border-orange-400/60 focus:ring-1 focus:ring-orange-400/20"
             />
           </label>
         </div>
@@ -212,7 +212,7 @@ export function ProductBucket({
             href={bucket.shopifyProductUrl}
             target="_blank"
             rel="noreferrer"
-            className="block rounded-xl border border-emerald-300/30 bg-emerald-400/10 px-3 py-2 text-sm text-emerald-200 hover:underline"
+            className="block rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 hover:underline"
           >
             Shopify URL: {bucket.shopifyProductUrl}
           </a>
@@ -223,20 +223,20 @@ export function ProductBucket({
             href={bucket.instagramPostUrl}
             target="_blank"
             rel="noreferrer"
-            className="block rounded-xl border border-pink-300/30 bg-pink-400/10 px-3 py-2 text-sm text-pink-200 hover:underline"
+            className="block rounded-xl border border-pink-200 bg-pink-50 px-3 py-2 text-sm text-pink-800 hover:underline"
           >
             Instagram URL: {bucket.instagramPostUrl}
           </a>
         ) : null}
 
         {bucket.errorMessage ? (
-          <p className="rounded-xl border border-rose-300/25 bg-rose-400/10 px-3 py-2 text-sm text-rose-200">
+          <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
             FAILED: {bucket.errorMessage}
           </p>
         ) : null}
 
         <div className="flex items-center justify-between">
-          <div className="text-xs text-slate-400">
+          <div className="text-xs text-stone-500">
             Shopify: {bucket.shopifyCreated ? "Created" : "Pending"} | Instagram:{" "}
             {bucket.instagramPublished ? "Published" : bucket.status === "FAILED" ? "Failed" : "Pending"}
           </div>
@@ -244,13 +244,13 @@ export function ProductBucket({
             type="button"
             onClick={() => onGo(bucket.id)}
             disabled={bucket.status !== "READY" || controlsLocked}
-            className="rounded-xl bg-gradient-to-r from-cyan-300 via-sky-400 to-orange-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-55"
+            className="rounded-xl bg-gradient-to-r from-orange-400 to-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-md hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-55"
           >
             {isLaunching ? "Launching..." : "GO"}
           </button>
         </div>
 
-        {isSaving ? <p className="text-xs text-slate-400">Saving changes...</p> : null}
+        {isSaving ? <p className="text-xs text-stone-500">Saving changes...</p> : null}
       </div>
     </motion.section>
   );
